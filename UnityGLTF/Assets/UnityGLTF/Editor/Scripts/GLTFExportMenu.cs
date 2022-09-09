@@ -111,7 +111,8 @@ namespace UnityGLTF
 
 			var invokedByShortcut = Event.current?.type == EventType.KeyDown;
 			var path = GLTFSceneExporter.SaveFolderPath;
-			if (!invokedByShortcut && !Directory.Exists(path))
+			// if (!invokedByShortcut && !Directory.Exists(path))
+			if (!Directory.Exists(path))
 				path = EditorUtility.SaveFolderPanel("glTF Export Path", GLTFSceneExporter.SaveFolderPath, "");
 
 			if (!string.IsNullOrEmpty(path))
