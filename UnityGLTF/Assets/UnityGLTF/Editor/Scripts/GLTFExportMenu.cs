@@ -15,9 +15,10 @@ namespace UnityGLTF
 	    {
 	        var path = AssetDatabase.GetAssetPath(texture);
 	        // texture is a subasset
-	        if(AssetDatabase.GetMainAssetTypeAtPath(path) != typeof(Texture2D))
+	        if (AssetDatabase.GetMainAssetTypeAtPath(path) != typeof(Texture2D))
 	        {
 		        var ext = System.IO.Path.GetExtension(path);
+		        if (string.IsNullOrWhiteSpace(ext)) return texture.name + ".png";
 		        path = path.Replace(ext, "-" + texture.name + ext);
 	        }
 	        return path;
@@ -106,6 +107,7 @@ namespace UnityGLTF
 
 		private static void Export(Transform[] transforms, bool binary, string sceneName)
 		{
+			var settings = GLTFSettings.GetOrCreateSettings();
 			var exportOptions = new ExportOptions { TexturePathRetriever = RetrieveTexturePath };
 			var exporter = new GLTFSceneExporter(transforms, exportOptions);
 
@@ -117,7 +119,9 @@ namespace UnityGLTF
 
 			if (!string.IsNullOrEmpty(path))
 			{
-				GLTFSceneExporter.SaveFolderPath = path;
+				var ext = binary ? ".glb" : ".gltf";
+				var resultFile = GLTFSceneExporter.GetFileName(path, sceneName, ext);
+				settings.SaveFolderPath = path;
 				if(binary)
 					exporter.SaveGLB(path, sceneName);
 				else

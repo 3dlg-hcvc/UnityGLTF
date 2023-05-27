@@ -40,6 +40,9 @@ namespace GLTF.Schema
 					case "path":
 						animationChannelTarget.Path = reader.ReadAsString();// reader.ReadStringEnum<GLTFAnimationChannelPath>();
 						break;
+					// TODO: add KHR_animation_pointer import
+					// case "pointer":
+					// 	break;
 					default:
 						animationChannelTarget.DefaultPropertyDeserializer(root, reader);
 						break;
@@ -57,7 +60,7 @@ namespace GLTF.Schema
 		{
 			if (channelTarget == null) return;
 
-			Node = new NodeId(channelTarget.Node, gltfRoot);
+			Node = channelTarget.Node != null ? new NodeId(channelTarget.Node, gltfRoot) : null;
 			Path = channelTarget.Path;
 		}
 

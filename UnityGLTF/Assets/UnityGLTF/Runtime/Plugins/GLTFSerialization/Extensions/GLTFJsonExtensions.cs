@@ -73,7 +73,7 @@ namespace GLTF.Extensions
 			{
 				list.Add(deserializerFunc());
 
-				// deserializerFunc can advance to EndArray. We need to check for this case as well. 
+				// deserializerFunc can advance to EndArray. We need to check for this case as well.
 				if (reader.TokenType == JsonToken.EndArray)
 				{
 					break;
@@ -86,7 +86,7 @@ namespace GLTF.Extensions
 		public static TextureInfo DeserializeAsTexture(this JToken token, GLTFRoot root)
 		{
 			TextureInfo textureInfo = null;
-			
+
 			if (token != null)
 			{
 				JObject textureObject = token as JObject;
@@ -99,7 +99,6 @@ namespace GLTF.Extensions
 				// Broken on il2cpp. Don't ship debug DLLs there.
 				System.Diagnostics.Debug.WriteLine("textureObject is " + textureObject.Type + " with a value of: " + textureObject[TextureInfo.INDEX].Type + " " + textureObject.ToString());
 #endif
-
 				int indexVal = textureObject[TextureInfo.INDEX].DeserializeAsInt();
 				textureInfo = new TextureInfo()
 				{
@@ -109,9 +108,31 @@ namespace GLTF.Extensions
 						Root = root
 					}
 				};
+				if (textureObject.ContainsKey(TextureInfo.TEXCOORD))
+				{
+					textureInfo.TexCoord = textureObject[TextureInfo.TEXCOORD].DeserializeAsInt();
+				}
 			}
 
 			return textureInfo;
+		}
+
+		public static NormalTextureInfo DeserializeAsNormalTexture(this JToken token, GLTFRoot root)
+		{
+			var tex = DeserializeAsTexture(token, root);
+			if (tex != null)
+			{
+				var normalTex = new NormalTextureInfo() { Index = tex.Index, TexCoord = tex.TexCoord };
+				JObject textureObject = token as JObject;
+				if (textureObject.ContainsKey(NormalTextureInfo.SCALE))
+				{
+					normalTex.Scale = textureObject[NormalTextureInfo.SCALE].DeserializeAsDouble();
+				}
+
+				return normalTex;
+			}
+
+			return null;
 		}
 
 		public static int DeserializeAsInt(this JToken token)
@@ -168,7 +189,7 @@ namespace GLTF.Extensions
 
 			return color;
 		}
-		
+
 		public static Color DeserializeAsColor(this JToken token)
 		{
 			Color color = Color.White;
@@ -180,9 +201,9 @@ namespace GLTF.Extensions
 				{
 					throw new Exception("JToken used for Color deserialization was not a JArray. It was a " + token.Type.ToString());
 				}
-				if (colorArray.Count != 4)
+				if (colorArray.Count < 3)
 				{
-					throw new Exception("JArray used for Color deserialization did not have 4 entries for RGBA. It had " + colorArray.Count);
+					throw new Exception("JArray used for Color deserialization did have less than 3 entries (needs to be RGB or RGBA). It had " + colorArray.Count);
 				}
 
 				color = new Color
@@ -190,7 +211,7 @@ namespace GLTF.Extensions
 					R = (float)colorArray[0].DeserializeAsDouble(),
 					G = (float)colorArray[1].DeserializeAsDouble(),
 					B = (float)colorArray[2].DeserializeAsDouble(),
-					A = (float)colorArray[3].DeserializeAsDouble()
+					A = (float)(colorArray.Count == 4 ? colorArray[3].DeserializeAsDouble() : 1.0),
 				};
 			}
 
